@@ -13,7 +13,7 @@ print(cwd)
 
 flags = [i for i in dir(cv2) if i.startswith('COLOR_')]
 
-varrock_small = cv2.imread("./ore-classifier/varrock_south_west.PNG")
+varrock_small = cv2.imread("./ore-classifier/varrock_south_west.png")
 varrock_small = cv2.cvtColor(varrock_small, cv2.COLOR_BGR2RGB)
 #plt.imshow(varrock_small)
 #plt.show()
@@ -77,32 +77,69 @@ hue_max = 179
 sat_max = 255
 val_max = 255
 
-li = (18, 0.617, 0.1843)
+iron_l = (12, 0.64, 0.26)
+iron_d = (21, 0.76, 0.04)
+
+# coal
+# light 53.33° 40% 17.65%
+# dark 50° 85.71% 5.49%
+#coal_l = (53.33, 0.4, 0.1765)
+#coal_d = (50, 0.8571, 0.0549)j
+
+# light2 60, 41%, 18%
+# dark2 60, 36%, 5%
+#coal_l = (55.7, 0.36, 0.18)
+#coal_d = (60, 0.48, 0.05)
+
+coal_l = (55, 0.35, 0.19)
+coal_d = (61, 0.49, 0.03)
+
+# convert to 255
 light_iron = (
-    int(li[0] / 360 * hue_max),
-    int(li[1] * sat_max),
-    int(li[2] * val_max)
+    int(iron_l[0] / 360 * hue_max),
+    int(iron_l[1] * sat_max),
+    int(iron_l[2] * val_max)
 )
-di = (21, 0.8235, 0.0667) # picked from image
-#di = (21, 0.8235, 0.0667) # hand tunked
 dark_iron = (
-    int(di[0] / 360 * hue_max),
-    int(di[1] * sat_max),
-    int(di[2] * val_max)
+    int(iron_d[0] / 360 * hue_max),
+    int(iron_d[1] * sat_max),
+    int(iron_d[2] * val_max)
 )
-print("light iron", light_iron)
-print("dark iron", dark_iron)
-lower = (
+
+light_coal = (
+    int(coal_l[0] / 360 * hue_max),
+    int(coal_l[1] * sat_max),
+    int(coal_l[2] * val_max)
+)
+dark_coal = (
+    int(coal_d[0] / 360 * hue_max),
+    int(coal_d[1] * sat_max),
+    int(coal_d[2] * val_max)
+)
+
+# get lower/upper bounds for inRange
+lower_iron = (
     min(light_iron[0], dark_iron[0]),
     min(light_iron[1], dark_iron[1]),
     min(light_iron[2], dark_iron[2])
 )
-upper = (
+upper_iron = (
     max(light_iron[0], dark_iron[0]),
     max(light_iron[1], dark_iron[1]),
     max(light_iron[2], dark_iron[2])
 )
-print(lower, upper)
+
+lower_coal = (
+    min(light_coal[0], dark_coal[0]),
+    min(light_coal[1], dark_coal[1]),
+    min(light_coal[2], dark_coal[2])
+)
+upper_coal = (
+    max(light_coal[0], dark_coal[0]),
+    max(light_coal[1], dark_coal[1]),
+    max(light_coal[2], dark_coal[2])
+)
+#print(lower, upper)
 #show_hsv_colors(light_iron, dark_iron)
 
 def compare(result, mask):
@@ -112,20 +149,27 @@ def compare(result, mask):
     plt.imshow(result)
     plt.show()
 
-# define some kernels for morh operations
+# define some kernels for morph operations
 rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15,15))
 elliptical_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
 cross_kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (5,5))
+one_kernel = np.ones((2, 2), np.uint8)
 
 # with colored mask
-mask = cv2.inRange(hsv_varrock_small, lower, upper)
+#mask = cv2.inRange(hsv_varrock_small, lower_coal, upper_coal)
+mask = cv2.inRange(hsv_varrock_small, lower_iron, upper_iron)
 result = cv2.bitwise_and(varrock_small, varrock_small, mask=mask)
-#compare(result, mask)
+compare(result, mask)
+
+# erode individual pixels
+erosion_mask = cv2.erode(mask, one_kernel, iterations = 2)
+result_eroded = cv2.bitwise_and(varrock_small, varrock_small, mask=erosion_mask)
+compare(result_eroded, erosion_mask)
 
 # with morph closed mask
-closed_mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, rect_kernel)
+closed_mask = cv2.morphologyEx(erosion_mask, cv2.MORPH_CLOSE, rect_kernel)
 result_closed = cv2.bitwise_and(varrock_small, varrock_small, mask=closed_mask)
-#compare(result_closed, closed_mask)
+compare(result_closed, closed_mask)
 
 # erode individual pixels
 kernel = np.ones((3,3), np.uint8)

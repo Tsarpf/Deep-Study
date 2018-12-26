@@ -33,7 +33,7 @@ def screenshot_and_draw(position):
 
             # Save img data as matrix
             #img_matrix.append(img)
-            segmented = ore_segment(img)
+            segmented = ore_segment(img, 'iron')
 
             # Display Image
             cv2.imshow('ses', segmented)
@@ -41,7 +41,7 @@ def screenshot_and_draw(position):
             i += 1
 
             # Press q to quit
-            if cv2.waitKey(10) & 0xFF == ord('q'):
+            if cv2.waitKey(250) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
 
