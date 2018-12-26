@@ -4,6 +4,8 @@ import mss
 import numpy
 from screeninfo import get_monitors
 
+from segment import ore_segment
+
 from screeninfo import get_monitors
 for m in get_monitors():
     print(str(m))
@@ -19,6 +21,7 @@ window_height = 640
 from win32 import win32gui
 
 def screenshot_and_draw(position):
+    i = 0
     with mss.mss() as sct:
         img_matrix = []
 
@@ -26,16 +29,19 @@ def screenshot_and_draw(position):
         #for _ in range(100):
             # Get raw pizels from screen and save to numpy array
             img = numpy.array(sct.grab(position))
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            #img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
             # Save img data as matrix
             #img_matrix.append(img)
+            segmented = ore_segment(img)
 
             # Display Image
-            cv2.imshow('Normal', img)
+            cv2.imshow('ses', segmented)
+            print("drawn", i)
+            i += 1
 
             # Press q to quit
-            if cv2.waitKey(250) & 0xFF == ord('q'):
+            if cv2.waitKey(10) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
 
