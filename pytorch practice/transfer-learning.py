@@ -11,17 +11,19 @@ import matplotlib.pyplot as plt
 import time
 import os
 import copy
+import glob
+import cv2
 
 
 def import_party():
-    img_path = '../cards/partypoker/training/'
+    img_path = './cards/partypoker/training/'
     files = glob.glob('%s/*.png' % img_path)
     imgs = []
     for path in files:
         card_label = path.split('\\')[1][0:-4]
         img = cv2.imread(path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        imgs.append((img, card_label))
+        imgs.append(([img], [card_label]))
     return imgs
 
 data = import_party()
@@ -58,8 +60,10 @@ optimizer_conv = optim.SGD(model_conv.fc.parameters(), lr=0.001, momentum=0.9)
 def train_model(net, criterion, optimizer, data):
     for epoch in range(2):
         running_loss = 0.0
-        for i, data in len(data)
-            images, labels = data
+        for i in range(len(data)):
+            images, labels = data[i]
+            images = torch.tensor(images)
+            labels = torch.tensor(labels)
             images, labels = images.to(device), labels.to(device)
 
             optimizer.zero_grad()
@@ -71,7 +75,7 @@ def train_model(net, criterion, optimizer, data):
 
             running_loss += loss.item()
 
-            if i % 2000 == 1999:
+            if i % 20 == 19:
                 print('[%d, %5d] loss: %.3f' %
                     (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
