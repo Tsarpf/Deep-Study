@@ -53,10 +53,15 @@ def get_cards(path):
 
     img = cv2.imread(path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    # partypoker
     img = img[515:580, 565:740]
     #plt.imshow(img)
     #plt.show()
     
+    # winner poker
+    #img = img[480:555, 490:620] # full card
+    #img = img[480:517, 490:620] # top half of card
 
     card1 = img[:,:87]
     card2 = img[:,87:]
@@ -101,7 +106,7 @@ for file in files:
 
 
 for card in cards:
-    card['pic'] = card['pic'][0:min_x, 0:min_y]
+    card['pic'] = card['pic'][0:min_x, 0:min_y] # make all the same size
     print(card['pic'].shape)
     write_file(card['pic'], card['label'])
 
