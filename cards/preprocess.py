@@ -7,6 +7,8 @@ import os
 cwd = os.getcwd()
 print(cwd)
 
+path_to_images = './cards/partypoker/'
+
 
 #cross_l = (119, 50, 50)
 #cross_d = (121, 56, 35)
@@ -26,15 +28,13 @@ print(cwd)
 
 used_card_labels = []
 def write_file(image, label):
-    print(image.shape)
-
-
+    #print(image.shape)
     if label not in used_card_labels:
         used_card_labels.append(label)
-        filename = './cards/images/training/%s.png' % label
+        filename = '%s/training/%s.png' % (path_to_images, label)
         cv2.imwrite(filename, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
     else:
-        filename = './cards/images/validation/%s.png' % label
+        filename = '%s/validation/%s.png' % (path_to_images, label)
         cv2.imwrite(filename, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
 def compare(one, two):
@@ -53,10 +53,13 @@ def get_cards(path):
 
     img = cv2.imread(path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = img[480:555, 490:620]
+    img = img[515:580, 565:740]
+    #plt.imshow(img)
+    #plt.show()
+    
 
-    card1 = img[:,:64]
-    card2 = img[:,64:]
+    card1 = img[:,:87]
+    card2 = img[:,87:]
     card1 = {
         'label': card1_label,
         'pic': card1
@@ -69,8 +72,8 @@ def get_cards(path):
     #compare(card1, card2) # draw cards next to each other with labels
     return (card1, card2)
 
-files = glob.glob('./cards/images/*.jpg')
-files.extend(glob.glob('./cards/images/*.png'))
+files = glob.glob('%s/*.jpg' % path_to_images)
+files.extend(glob.glob('%s/*.png' % path_to_images))
 cards = []
 min_x = 10000
 min_y = 10000
@@ -98,7 +101,7 @@ for file in files:
 
 
 for card in cards:
-    card['pic'] = card['pic'][0:75, 0:64]
+    card['pic'] = card['pic'][0:min_x, 0:min_y]
     print(card['pic'].shape)
     write_file(card['pic'], card['label'])
 
