@@ -53,7 +53,8 @@ def get_cards(path):
 
     img = cv2.imread(path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = img[480:555, 490:620]
+    img = img[480:555, 490:620] # full card
+    #img = img[480:517, 490:620] # top half of card
 
     card1 = img[:,:64]
     card2 = img[:,64:]
@@ -98,7 +99,7 @@ for file in files:
 
 
 for card in cards:
-    card['pic'] = card['pic'][0:75, 0:64]
+    card['pic'] = card['pic'][0:min_x, 0:min_y] # make all the same size
     print(card['pic'].shape)
     write_file(card['pic'], card['label'])
 
