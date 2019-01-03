@@ -73,23 +73,11 @@ def un_idx(idx):
     val = idx % 13
     return (suit, val)
 
-def import_party():
-    img_path = './cards/partypoker/training/'
-    files = glob.glob('%s/*.png' % img_path)
-    imgs = []
-    for path in files:
-        card_label = path.split('\\')[1][0:-4]
-        img = cv2.imread(path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        label_idx = get_idx_from_str(card_label)
-        imgs.append(([img], [label_idx]))
-    return imgs
-
 def import_loader():
     data_dir = './cards/torch/'
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomResizedCrop(224, (0.5, 1.0)),
+            transforms.RandomResizedCrop(224, (1.0, 1.0)),
             #transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             # FIX these to actual values from data
@@ -116,7 +104,6 @@ def import_loader():
     return (image_datasets, dataloaders, dataset_sizes, class_names)
 
 
-#data = import_party()
 
 (image_datasets, dataloaders, dataset_sizes, class_names) = import_loader()
 
@@ -149,14 +136,16 @@ optimizer_conv = optim.SGD(model_conv.fc.parameters(), lr=0.001, momentum=0.9)
 # Decay LR by a factor of 0.1 every 7 epochs
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=7, gamma=0.1)
 
-def train_model(net, criterion, optimizer, data):
-    for epoch in range(2):
+def train_model(net, criterion, optimizer, dataloaders, num_epochs=25):
+    net.train()
+    for epoch in range(num_epochs):
         running_loss = 0.0
-        for i in range(len(data)):
-            images, labels = data[i]
-            images = torch.tensor(images)
-            labels = torch.tensor(labels)
-            images, labels = images.to(device), labels.to(device)
+        i = 0
+        for inputs, labels in dataloaders['train']:
+            #images, labels = data[i]
+            #images = torch.tensor(images)
+            #labels = torch.tensor(labels)
+            images, labels = inputs.to(device), labels.to(device)
 
             optimizer.zero_grad()
 
@@ -171,8 +160,9 @@ def train_model(net, criterion, optimizer, data):
                 print('[%d, %5d] loss: %.3f' %
                     (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
+            i += 1
+    return net
 
-#model_conv = train_model(model_conv, criterion, optimizer_conv, data)
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
@@ -194,5 +184,37 @@ inputs, classes = next(iter(dataloaders['train']))
 out = torchvision.utils.make_grid(inputs)
 
 imshow(out, title=[class_names[x] for x in classes])
+
+print('start train')
+
+def visualize_model(model, num_images=6):
+    was_training = model.training
+    model.eval()
+    images_so_far = 0
+    fig = plt.figure()
+
+    with torch.no_grad():
+        for i, (inputs, labels) in enumerate(dataloaders['val']):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+
+            for j in range(inputs.size()[0]):
+                images_so_far += 1
+                ax = plt.subplot(num_images//2, 2, images_so_far)
+                ax.axis('off')
+                ax.set_title('predicted: {}'.format(class_names[preds[j]]))
+                imshow(inputs.cpu().data[j])
+
+                if images_so_far == num_images:
+                    model.train(mode=was_training)
+                    return
+        model.train(mode=was_training)
+
+model_conv = train_model(model_conv, criterion, optimizer_conv, dataloaders, 25)
+
+visualize_model(model_conv)
 
 print('done')
