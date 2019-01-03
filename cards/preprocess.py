@@ -9,18 +9,6 @@ import os
 cwd = os.getcwd()
 print(cwd)
 
-#    # partypoker
-#    #img = img[515:580, 565:740]
-#    #card1 = img[:,:87]
-#    #card2 = img[:,87:]
-#    
-#    # winner poker
-#    #img = img[480:517, 490:620] # top half of card
-#    img = img[480:555, 490:620] # full card
-#    card1 = img[:,:64]
-#    card2 = img[:,64:]
-
-
 paths_to_images = [
     {'path': './cards/winner-poker', 'ymin': 480, 'ymax': 555,
          'xmin': 490, 'xmax': 620, 'card_size': 64},
@@ -31,6 +19,7 @@ paths_to_images = [
 path_to_torch_images = './cards/torch/'
 
 
+# HSV color ranges for suits at winner poker
 #cross_l = (119, 50, 50)
 #cross_d = (121, 56, 35)
 #
