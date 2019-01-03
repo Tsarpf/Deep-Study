@@ -14,6 +14,64 @@ import copy
 import glob
 import cv2
 
+suit_map = {
+    'd': 0,
+    'h': 1,
+    'c': 2,
+    's': 3,
+}
+
+anti_suit_map = {
+    0: 'd',
+    1: 'h',
+    2: 'c',
+    3: 's',
+}
+
+val_map = {
+    'A': 0,
+    '2': 1,
+    '3': 2,
+    '4': 3,
+    '5': 4,
+    '6': 5,
+    '7': 6,
+    '8': 7,
+    '9': 8,
+    'T': 9,
+    'J': 10,
+    'Q': 11,
+    'K': 12,
+}
+
+anti_val_map = {
+    0: 'A',
+    1: '2',
+    2: '3',
+    3: '4',
+    4: '5',
+    5: '6',
+    6: '7',
+    7: '8',
+    8: '9',
+    9: 'T',
+    10: 'J',
+    11: 'Q',
+    12: 'K',
+}
+
+width = len(suit_map)
+
+def get_idx_from_str(label):
+    return get_idx(label[0], label[1])
+
+def get_idx(val, suit):
+    return width * val_map[val] + suit_map[suit]
+
+def un_idx(idx):
+    suit = int(idx / 13)
+    val = idx % 13
+    return (suit, val)
 
 def import_party():
     img_path = './cards/partypoker/training/'
@@ -23,10 +81,44 @@ def import_party():
         card_label = path.split('\\')[1][0:-4]
         img = cv2.imread(path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        imgs.append(([img], [card_label]))
+        label_idx = get_idx_from_str(card_label)
+        imgs.append(([img], [label_idx]))
     return imgs
 
-data = import_party()
+def import_loader():
+    data_dir = './cards/torch/'
+    data_transforms = {
+        'train': transforms.Compose([
+            transforms.RandomResizedCrop(224, (0.5, 1.0)),
+            #transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            # FIX these to actual values from data
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ]),
+        'val': transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ]),
+    }
+    image_datasets = {x: torchvision.datasets.ImageFolder(os.path.join(data_dir, x),
+                                              data_transforms[x])
+                                    for x in ['train', 'val']
+    }
+    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
+                                              shuffle=True, num_workers=0)
+                                                for x in ['train', 'val']
+    }
+    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+    class_names = image_datasets['train'].classes
+
+    return (image_datasets, dataloaders, dataset_sizes, class_names)
+
+
+#data = import_party()
+
+(image_datasets, dataloaders, dataset_sizes, class_names) = import_loader()
 
 plt.ion()   # interactive mode
 
@@ -80,4 +172,27 @@ def train_model(net, criterion, optimizer, data):
                     (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
 
-model_conv = train_model(model_conv, criterion, optimizer_conv, data)
+#model_conv = train_model(model_conv, criterion, optimizer_conv, data)
+
+def imshow(inp, title=None):
+    """Imshow for Tensor."""
+    inp = inp.numpy().transpose((1, 2, 0))
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    inp = std * inp + mean
+    inp = np.clip(inp, 0, 1)
+    plt.imshow(inp)
+    if title is not None:
+        plt.title(title)
+    plt.pause(0.001)  # pause a bit so that plots are updated
+
+
+# Get a batch of training data
+inputs, classes = next(iter(dataloaders['train']))
+
+# Make a grid from batch
+out = torchvision.utils.make_grid(inputs)
+
+imshow(out, title=[class_names[x] for x in classes])
+
+print('done')

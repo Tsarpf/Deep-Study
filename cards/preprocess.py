@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import uuid
+import random
 
 import os
 cwd = os.getcwd()
@@ -48,7 +49,13 @@ path_to_torch_images = './cards/torch/'
 
 def write_file_torch(image, label):
     unique_filename = str(uuid.uuid4())
-    path = '%s/%s' % (path_to_torch_images, label)
+    path = ''
+    # write about every tenth file to validation set
+    if random.randint(1, 10) == 10:
+        path = '%s/val/%s' % (path_to_torch_images, label)
+    else:
+        path = '%s/train/%s' % (path_to_torch_images, label)
+
     os.makedirs(path, exist_ok=True)
     cv2.imwrite('%s/%s.png' % (path, unique_filename), cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
@@ -80,17 +87,6 @@ def get_cards(path, site):
     img = cv2.imread(path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    # partypoker
-    #img = img[515:580, 565:740]
-    #card1 = img[:,:87]
-    #card2 = img[:,87:]
-    
-    # winner poker
-    #img = img[480:517, 490:620] # top half of card
-    #img = img[480:555, 490:620] # full card
-    #card1 = img[:,:64]
-    #card2 = img[:,64:]
-
     ymin = site['ymin']
     ymax = site['ymax']
     xmin = site['xmin']
@@ -100,10 +96,6 @@ def get_cards(path, site):
     img = img[ymin:ymax, xmin:xmax]
     card1 = img[:, :card_size]
     card2 = img[:, card_size:]
-
-
-
-
 
     #plt.imshow(img)
     #plt.show()
