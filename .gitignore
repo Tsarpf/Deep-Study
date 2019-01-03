@@ -2,3 +2,5 @@ __pycache__
 cards/partypoker
 cards/*.png
 data/
+cards/torch
+cards/winner-poker
