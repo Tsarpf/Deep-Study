@@ -12,8 +12,8 @@ print(cwd)
 paths_to_images = [
     {'path': './cards/winner-poker', 'ymin': 480, 'ymax': 555,
          'xmin': 490, 'xmax': 620, 'card_size': 64},
-    {'path': './cards/partypoker',   'ymin': 515, 'ymax': 580,
-         'xmin': 565, 'xmax': 740, 'card_size': 87},
+    #{'path': './cards/partypoker',   'ymin': 515, 'ymax': 580,
+    #     'xmin': 565, 'xmax': 740, 'card_size': 87},
 ]
 
 path_to_torch_images = './cards/torch/'
@@ -40,7 +40,7 @@ def write_file_torch(image, label):
     unique_filename = str(uuid.uuid4())
     path = ''
     # write about every tenth file to validation set
-    if random.randint(1, 10) == 10:
+    if random.randint(1, 4) == 4:
         path = '%s/val/%s' % (path_to_torch_images, label)
     else:
         path = '%s/train/%s' % (path_to_torch_images, label)

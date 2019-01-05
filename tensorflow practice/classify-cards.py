@@ -3,6 +3,8 @@ import tensorflow as tf
 import numpy as np
 #mnist = tf.keras.datasets.mnist
 import glob
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 
 
 suit_map = {
@@ -80,16 +82,28 @@ def load_card_files(card_path):
         #print(idx)
     return np.array(x), np.array(y)
 
-def load_training():
-    return load_card_files('./cards/images/training/*.png')
+def preview():
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+    datagen = ImageDataGenerator(
+            rescale=1./255,
+            width_shift_range=0.2,
+            height_shift_range=0.2,
+            zoom_range=0.2,
+            fill_mode='nearest')
 
-def load_validation():
-    return load_card_files('./cards/images/validation/*.png')
+    img = load_img('./cards/torch/val/8h/9a31d523-0f59-4e8b-8c97-d872247ecd6b.png')  # this is a PIL image
+    x = img_to_array(img)  # this is a Numpy array with shape (3, 150, 150)
+    x = x.reshape((1,) + x.shape)  # this is a Numpy array with shape (1, 3, 150, 150)
 
-x_train, y_train = load_training()
-x_validate, y_validate = load_validation()
+    # the .flow() command below generates batches of randomly transformed images
+    # and saves the results to the `preview/` directory
+    i = 0
+    for batch in datagen.flow(x, batch_size=1,
+                            save_to_dir='preview', save_prefix='cat', save_format='jpeg'):
+        i += 1
+        if i > 20:
+            break  # otherwise the generator would loop indefinitely
 
-sess = tf.InteractiveSession()
 
 def print_confusion(confusion):
     suit_fails = 0
@@ -115,17 +129,23 @@ def print_confusion(confusion):
                     both_failed += 1
 
                 if row_idx == col_idx:
-                    print('%s%s correctly identified as %s%s' % (val1, suit1, val2, suit2))
+                    print('%s%s correctly identified' % (val1, suit1))
                 else:
                     print('%s%s confused with %s%s' % (val1, suit1, val2, suit2))
 
     print('suit fails %s val fails %s both fails %s' % (suit_fails, val_fails, both_failed))
 
-def print_model_stats(model):
-    evaluation = model.evaluate(x_validate, y_validate)
+def print_model_stats(model, val_gen):
+    evaluation = model.evaluate_generator(val_gen)
     # Check confusions...
-    predictions = model.predict_classes(x_validate)
-    confusion = tf.confusion_matrix(y_validate, predictions).eval()
+    #predictions = model.predict_generator(val_gen).argmax(axis=-1)
+    predictions = model.predict_generator(val_gen).argmax(axis=-1)
+    #predictions = model.predict_generator(val_gen)
+    #predictions = predictions.argmax(axis=1)
+    
+    #y_validate = predictions.argmax(axis=-1)
+    #predictions = model.predict_classes(x_validate)
+    confusion = tf.confusion_matrix(val_gen.classes, predictions).eval()
     print_confusion(confusion)
     print('validation accuracy', evaluation[1])
 
@@ -151,36 +171,101 @@ def mnist_for_cards():
 #mnist_model = mnist_for_cards()
 #print_model_stats(mnist_model)
 
-def conv_cards(dada):
-    in_shape = dada[0].shape
+def conv_cards(train_gen, val_gen, card_size, batch_size, epochs):
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Conv2D(32, (10, 10), padding="same", input_shape=in_shape),
-        #tf.keras.layers.ReLU(),
-        tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
-
-        #tf.keras.layers.BatchNormalization(),
-
-        tf.keras.layers.Conv2D(32, (3, 3), padding="same"),
-        tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
-
-        tf.keras.layers.Conv2D(32, (2, 2), padding="same"),
-        #tf.keras.layers.Conv2D(52, (5, 5), padding="same"),
-
-        #tf.keras.layers.ReLU(),
-        tf.keras.layers.Flatten(),
+        #tf.keras.layers.Conv2D(32, (3, 3), padding="same", input_shape=card_size, activation=tf.nn.relu),
         #tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
-        #tf.keras.layers.Dense(52 * 2, activation=tf.nn.relu), 
-        tf.keras.layers.Dense(52 * 10, activation=tf.nn.relu), 
-        tf.keras.layers.Dropout(0.1),
+
+        ##tf.keras.layers.BatchNormalization(),
+
+        #tf.keras.layers.Conv2D(32, (3, 3), padding="same", activation=tf.nn.relu),
+        #tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
+
+        #tf.keras.layers.Conv2D(32, (5, 5), padding="same", activation=tf.nn.relu),
+        #tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
+
+        #tf.keras.layers.Flatten(),
+        tf.keras.layers.Flatten(input_shape=card_size),
+        tf.keras.layers.Dense(52 * 20, activation=tf.nn.relu), 
+        #tf.keras.layers.Dropout(0.1),
         tf.keras.layers.Dense(52, activation=tf.nn.softmax)
     ])
     model.compile(optimizer='adam',
                 loss='sparse_categorical_crossentropy',
+                #loss='categorical_crossentropy',
                 metrics=['accuracy'])
 
-    model.fit(x_train, y_train, epochs=45)
+    #model.fit(x_train, y_train, epochs=150)
+    steps_per_epoch = train_gen.n // batch_size
+    validation_steps = val_gen.n // batch_size
+    if validation_steps < 1:
+        validation_steps = 1
+    model.fit_generator(
+        train_gen,
+        #steps_per_epoch=train_gen.n,
+        steps_per_epoch=steps_per_epoch,
+        epochs=epochs,
+        validation_data=val_gen,
+        #validation_steps=val_gen.n,
+        validation_steps=validation_steps,
+        #batch_size=batch_size
+        #shuffle=True,
+        shuffle=False,
+        #use_multiprocessing=True,
+    )
     return model
 
+def load_training(card_size, batch_size):
+    train_datagen = ImageDataGenerator(
+            rescale=1./255,
+            #width_shift_range=0.2,
+            #height_shift_range=0.1,
+            #zoom_range=0.2,
+            #fill_mode='nearest'
+        )
+    #train_datagen = ImageDataGenerator()
+    return train_datagen.flow_from_directory(
+        './cards/torch/train', # mebbe rename since using from tf as well kjeh
+        target_size=card_size,
+        batch_size=batch_size,
+        class_mode="sparse",
+        color_mode="rgb",
+        #shuffle=True
+        shuffle=False
+    )
+    #return load_card_files('./cards/winner-poker/training/*.png')
 
-cnn_model = conv_cards(x_train)
-print_model_stats(cnn_model)
+
+def load_validation(card_size, batch_size):
+    load_datagen = ImageDataGenerator(
+        rescale=1./255
+    )
+    #load_datagen = ImageDataGenerator()
+    return load_datagen.flow_from_directory(
+        './cards/torch/val', # mebbe rename since using from tf as well kjeh
+        target_size=card_size,
+        batch_size=batch_size,
+        class_mode="sparse",
+        color_mode="rgb",
+        shuffle=False
+    )
+    #return load_card_files('./cards/winner-poker/validation/*.png')
+
+#preview()
+
+print(tf.keras.backend.image_data_format())
+
+
+card_size = (75, 64)
+batch_size = 32 
+epochs = 20
+#x_train, y_train = load_training(card_size)
+#x_validate, y_validate = load_validation(card_size)
+train_gen = load_training(card_size, batch_size)
+val_gen = load_validation(card_size, batch_size)
+
+sess = tf.InteractiveSession()
+
+in_shape = (card_size[0], card_size[1], 3)
+cnn_model = conv_cards(train_gen, val_gen, in_shape, batch_size, epochs)
+print_model_stats(cnn_model, val_gen)

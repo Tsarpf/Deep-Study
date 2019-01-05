@@ -77,7 +77,7 @@ def import_loader():
     data_dir = './cards/torch/'
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomResizedCrop(224, (0.70, 1.0)),
+            transforms.RandomResizedCrop(224, (0.80, 1.0)),
             #transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             # FIX these to actual values from data
@@ -203,6 +203,41 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, num_epochs=
     model.load_state_dict(best_model_wts)
     return model
 
+def validate_model(model, criterion, optimizer, dataloaders):
+    since = time.time()
+
+    phase = 'train'
+    model.train()  # Set model to training mode
+
+    running_loss = 0.0
+    running_corrects = 0
+
+    # Iterate over data.
+    for inputs, labels in dataloaders[phase]:
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+
+        # zero the parameter gradients
+        optimizer.zero_grad()
+
+        # forward
+        # track history if only in train
+        with torch.set_grad_enabled(phase == 'train'):
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            loss = criterion(outputs, labels)
+
+        # statistics
+        running_loss += loss.item() * inputs.size(0)
+        running_corrects += torch.sum(preds == labels.data)
+
+    epoch_loss = running_loss / dataset_sizes[phase]
+    epoch_acc = running_corrects.double() / dataset_sizes[phase]
+
+    print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+        phase, epoch_loss, epoch_acc))
+
+    return model
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
@@ -253,8 +288,39 @@ def visualize_model(model, num_images=6):
                     return
         model.train(mode=was_training)
 
-model_conv = train_model(model_conv, criterion, optimizer_conv, exp_lr_scheduler, dataloaders, 25)
+def train_model_custom(net, criterion, optimizer, dataloaders, num_epochs=25):
+    net.train()
+    for epoch in range(num_epochs):
+        running_loss = 0.0
+        i = 0
+        for inputs, labels in dataloaders['train']:
+            #images, labels = data[i]
+            #images = torch.tensor(images)
+            #labels = torch.tensor(labels)
+            images, labels = inputs.to(device), labels.to(device)
+
+            optimizer.zero_grad()
+
+            outputs = net(images)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+
+            if i % 20 == 19:
+                print('[%d, %5d] loss: %.3f' %
+                    (epoch + 1, i + 1, running_loss / 2000))
+                running_loss = 0.0
+            i += 1
+    return net
+
+
+#model_conv = train_model(model_conv, criterion, optimizer_conv, exp_lr_scheduler, dataloaders, 25)
+model_conv = train_model_custom(model_conv, criterion, optimizer_conv, dataloaders, 25)
 
 visualize_model(model_conv)
+validate_model(model_conv, criterion, optimizer_conv, dataloaders)
+
 
 print('done')
