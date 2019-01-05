@@ -58,18 +58,29 @@ def generate_mods(img, path):
 
 def write_file_torch(image, label):
     unique_filename = str(uuid.uuid4())
-    path = ''
-    # write about every tenth file to validation set
-    if random.randint(1, 10) == 10:
-        path = '%s/val/%s' % (path_to_torch_images, label)
-    else:
-        path = '%s/train/%s' % (path_to_torch_images, label)
 
+    path = '%s/val/%s' % (path_to_torch_images, label)
     os.makedirs(path, exist_ok=True)
     rgb_img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    #path = '%s/%s.png' % (path, unique_filename)
-    generate_mods(rgb_img, path)
-    #cv2.imwrite(, )
+    cv2.imwrite('%s/%s.png' % (path, unique_filename), rgb_img)
+
+    path = '%s/train/%s' % (path_to_torch_images, label)
+    os.makedirs(path, exist_ok=True)
+    #rgb_img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    generate_mods(image, path)
+
+
+# def write_file_torch(image, label):
+#     unique_filename = str(uuid.uuid4())
+#     path = ''
+#     # write about every tenth file to validation set
+#     if random.randint(1, 4) == 4:
+#         path = '%s/val/%s' % (path_to_torch_images, label)
+#     else:
+#         path = '%s/train/%s' % (path_to_torch_images, label)
+#
+#     os.makedirs(path, exist_ok=True)
+#     cv2.imwrite('%s/%s.png' % (path, unique_filename), cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
 used_card_labels = []
 def write_file(image, label):
