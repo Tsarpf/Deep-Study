@@ -81,10 +81,10 @@ def load_card_files(card_path):
     return np.array(x), np.array(y)
 
 def load_training():
-    return load_card_files('./cards/images/training/*.png')
+    return load_card_files('./cards/winner-poker/training/*.png')
 
 def load_validation():
-    return load_card_files('./cards/images/validation/*.png')
+    return load_card_files('./cards/winner-poker/validation/*.png')
 
 x_train, y_train = load_training()
 x_validate, y_validate = load_validation()
@@ -154,31 +154,28 @@ def mnist_for_cards():
 def conv_cards(dada):
     in_shape = dada[0].shape
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Conv2D(32, (10, 10), padding="same", input_shape=in_shape),
-        #tf.keras.layers.ReLU(),
+        tf.keras.layers.Conv2D(32, (3, 3), padding="same", input_shape=in_shape, activation=tf.nn.relu),
         tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
 
         #tf.keras.layers.BatchNormalization(),
 
-        tf.keras.layers.Conv2D(32, (3, 3), padding="same"),
+        tf.keras.layers.Conv2D(32, (3, 3), padding="same", activation=tf.nn.relu),
         tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
 
-        tf.keras.layers.Conv2D(32, (2, 2), padding="same"),
-        #tf.keras.layers.Conv2D(52, (5, 5), padding="same"),
+        tf.keras.layers.Conv2D(32, (5, 5), padding="same", activation=tf.nn.relu),
+        tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
 
-        #tf.keras.layers.ReLU(),
         tf.keras.layers.Flatten(),
-        #tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
-        #tf.keras.layers.Dense(52 * 2, activation=tf.nn.relu), 
-        tf.keras.layers.Dense(52 * 10, activation=tf.nn.relu), 
-        tf.keras.layers.Dropout(0.1),
+        #tf.keras.layers.Flatten(input_shape=card_size),
+        tf.keras.layers.Dense(52 * 20, activation=tf.nn.relu), 
+        #tf.keras.layers.Dropout(0.1),
         tf.keras.layers.Dense(52, activation=tf.nn.softmax)
     ])
     model.compile(optimizer='adam',
                 loss='sparse_categorical_crossentropy',
                 metrics=['accuracy'])
 
-    model.fit(x_train, y_train, epochs=45)
+    model.fit(x_train, y_train, epochs=200, batch_size=10)
     return model
 
 

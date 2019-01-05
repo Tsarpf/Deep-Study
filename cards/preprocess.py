@@ -12,8 +12,8 @@ print(cwd)
 paths_to_images = [
     {'path': './cards/winner-poker', 'ymin': 480, 'ymax': 555,
          'xmin': 490, 'xmax': 620, 'card_size': 64},
-    {'path': './cards/partypoker',   'ymin': 515, 'ymax': 580,
-         'xmin': 565, 'xmax': 740, 'card_size': 87},
+    #{'path': './cards/partypoker',   'ymin': 515, 'ymax': 580,
+    #     'xmin': 565, 'xmax': 740, 'card_size': 87},
 ]
 
 path_to_torch_images = './cards/torch/'
@@ -34,7 +34,27 @@ path_to_torch_images = './cards/torch/'
 
 # letters: A K Q J T
 # suits: D H C S
+def generate_mods(img, path):
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+    datagen = ImageDataGenerator(
+            #rescale=1./255,
+            width_shift_range=0.2,
+            height_shift_range=0.2,
+            zoom_range=0.2,
+            fill_mode='nearest')
 
+    #img = load_img('./cards/torch/val/8h/9a31d523-0f59-4e8b-8c97-d872247ecd6b.png')  # this is a PIL image
+    x = img_to_array(img)  # this is a Numpy array with shape (3, 150, 150)
+    x = x.reshape((1,) + x.shape)  # this is a Numpy array with shape (1, 3, 150, 150)
+
+    # the .flow() command below generates batches of randomly transformed images
+    # and saves the results to the `preview/` directory
+    i = 0
+    for batch in datagen.flow(x, batch_size=1, save_to_dir=path, save_prefix='cat', save_format='png'):
+        i += 1
+        if i > 20:
+            break
+        
 
 def write_file_torch(image, label):
     unique_filename = str(uuid.uuid4())
@@ -46,7 +66,10 @@ def write_file_torch(image, label):
         path = '%s/train/%s' % (path_to_torch_images, label)
 
     os.makedirs(path, exist_ok=True)
-    cv2.imwrite('%s/%s.png' % (path, unique_filename), cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+    rgb_img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    #path = '%s/%s.png' % (path, unique_filename)
+    generate_mods(rgb_img, path)
+    #cv2.imwrite(, )
 
 used_card_labels = []
 def write_file(image, label):
