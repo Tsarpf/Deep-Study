@@ -34,7 +34,7 @@ RGB | HSV
 
 Segmentation algorithm steps:
 - Only using HSV thresholding to segment the images leaves spots in the ores, and some random individual pixels are found here and there.
-- Using morphological closing after this, the spots within the ores disappear:
+- Using morphological closing, the black spots within the ores disappear:
 - Using morphological erosion with a 2 by 2 kernel gets rid of most of the individual pixels:
 
 After some experiments and trial & error with coal ore, finally adding one additional round of of erosion makes the segmenter work well  for both iron and coal ores, with the latter having more 1-2 pixel group noise, since there are a lot of black pixels like the ones found in coal ores in other objects in RuneScape.
