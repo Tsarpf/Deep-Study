@@ -9,53 +9,43 @@ import os
 cwd = os.getcwd()
 print(cwd)
 
+# (x|y)min / (x|y)max give card positions in the default size table
 paths_to_images = [
     {'path': './cards/winner-poker', 'ymin': 480, 'ymax': 555,
          'xmin': 490, 'xmax': 620, 'card_size': 64},
-    #{'path': './cards/partypoker',   'ymin': 515, 'ymax': 580,
-    #     'xmin': 565, 'xmax': 740, 'card_size': 87},
+    {'path': './cards/partypoker',   'ymin': 515, 'ymax': 580,
+         'xmin': 565, 'xmax': 740, 'card_size': 87},
 ]
 
 path_to_torch_images = './cards/torch/'
 
 
-# HSV color ranges for suits at winner poker
-#cross_l = (119, 50, 50)
-#cross_d = (121, 56, 35)
-#
-#diamond_l = (190, 64, 70)
-#diamond_d = (193, 68, 45)
-#
-#spade_l = (265, 8, 50)
-#spade_d = (280, 4, 30)
-#
-#heart_l = (0, 65, 74)
-#heart_d = (1, 73, 50)
-
-# letters: A K Q J T
-# suits: D H C S
+# Generates train set augmentations. 
+# Augmenting could be done at training time with the generators,
+#  but it's nice to get to look at the augmented pics.
 def generate_mods(img, path):
     from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
     datagen = ImageDataGenerator(
-            #rescale=1./255,
+            #rescale=1./255, # do rescaling at training time
             width_shift_range=0.2,
-            height_shift_range=0.2,
-            zoom_range=0.2,
+            height_shift_range=0.1,
+            zoom_range=0.1,
+            rotation_range=5,
             fill_mode='nearest')
 
-    #img = load_img('./cards/torch/val/8h/9a31d523-0f59-4e8b-8c97-d872247ecd6b.png')  # this is a PIL image
-    x = img_to_array(img)  # this is a Numpy array with shape (3, 150, 150)
-    x = x.reshape((1,) + x.shape)  # this is a Numpy array with shape (1, 3, 150, 150)
+    x = img_to_array(img)
+    x = x.reshape((1,) + x.shape)
 
-    # the .flow() command below generates batches of randomly transformed images
-    # and saves the results to the `preview/` directory
+    # Gotta loop it stupidly like this to consume the batches
     i = 0
     for batch in datagen.flow(x, batch_size=1, save_to_dir=path, save_prefix='cat', save_format='png'):
         i += 1
-        if i > 20:
+        if i > 30:
             break
         
 
+# This uses augmented images as a train set, and the original images as the validation set
+# The actual card images will always be in the same size and orientation anyway.
 def write_file_torch(image, label):
     unique_filename = str(uuid.uuid4())
 
@@ -66,10 +56,10 @@ def write_file_torch(image, label):
 
     path = '%s/train/%s' % (path_to_torch_images, label)
     os.makedirs(path, exist_ok=True)
-    #rgb_img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     generate_mods(image, path)
 
 
+# Use this to split every fourth image to validate set
 # def write_file_torch(image, label):
 #     unique_filename = str(uuid.uuid4())
 #     path = ''
@@ -136,7 +126,6 @@ def get_cards(path, site):
     return (card1, card2)
 
 for site in paths_to_images:
-    #{path: './cards/partypoker', ymin: 515, ymax: 580, xmin: 565, xmax: 740, card_size: 87},
     path_to_images = site['path']
 
     files = glob.glob('%s/*.jpg' % path_to_images)
@@ -168,7 +157,6 @@ for site in paths_to_images:
     for card in cards:
         card['pic'] = card['pic'][0:min_x, 0:min_y] # make all the same size
         print(card['pic'].shape)
-        #write_file(card['pic'], card['label'])
         write_file_torch(card['pic'], card['label'])
 
     print(min_x, max_x, min_y, max_y)
