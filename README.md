@@ -32,20 +32,14 @@ RGB | HSV
 :----:|:----:
 ![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/rgb%20scatter%20small.png) | The lower right of the HSV graph nicely shows the iron ore colors separated from the other colors: ![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/hsv%20scatter%20small.png)
 
-Only using HSV thresholding to segment the images leaves spots in the ores, and some random individual pixels are found here and there:
-
-![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/step_1_segment_by_color.png)
-
-Using morphological closing after this, the spots in the ores disappear:
-
-![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/step_2_morph_closing.png)
-
-Using morphological erosion with a 2 by 2 kernel gets rid of most of the individual pixels:
-
-![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/step_3_erosion.png)
-
+Segmentation algorithm steps:
+- Only using HSV thresholding to segment the images leaves spots in the ores, and some random individual pixels are found here and there.
+- Using morphological closing after this, the spots within the ores disappear:
+- Using morphological erosion with a 2 by 2 kernel gets rid of most of the individual pixels:
 
 After some experiments and trial & error with coal ore, finally adding one additional round of of erosion makes the segmenter work well  for both iron and coal ores, with the latter having more 1-2 pixel group noise, since there are a lot of black pixels like the ones found in coal ores in other objects in RuneScape.
+
+![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/example-results.png)
 
 Final result:
 ![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/iron_finder.png)
