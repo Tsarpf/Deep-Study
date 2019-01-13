@@ -130,7 +130,10 @@ model_conv = model_conv.to(device)
 
 criterion = nn.CrossEntropyLoss()
 
-optimizer_conv = optim.SGD(model_conv.fc.parameters(), lr=0.001, momentum=0.9)
+#optimizer_conv = optim.SGD(model_conv.fc.parameters(), lr=0.001, momentum=0.9)
+learning_rate = 1e-4
+optimizer_conv = torch.optim.Adam(model_conv.fc.parameters(), lr=learning_rate)
+
 
 # Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=7, gamma=0.1)
@@ -202,42 +205,6 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, num_epochs=
     model.load_state_dict(best_model_wts)
     return model
 
-def validate_model(model, criterion, optimizer, dataloaders):
-    since = time.time()
-
-    phase = 'train'
-    model.train()  # Set model to training mode
-
-    running_loss = 0.0
-    running_corrects = 0
-
-    # Iterate over data.
-    for inputs, labels in dataloaders[phase]:
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-
-        # zero the parameter gradients
-        optimizer.zero_grad()
-
-        # forward
-        # track history if only in train
-        with torch.set_grad_enabled(phase == 'train'):
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
-            loss = criterion(outputs, labels)
-
-        # statistics
-        running_loss += loss.item() * inputs.size(0)
-        running_corrects += torch.sum(preds == labels.data)
-
-    epoch_loss = running_loss / dataset_sizes[phase]
-    epoch_acc = running_corrects.double() / dataset_sizes[phase]
-
-    print('{} Loss: {:.4f} Acc: {:.4f}'.format(
-        phase, epoch_loss, epoch_acc))
-
-    return model
-
 def imshow(inp, title=None):
     """Imshow for Tensor."""
     # These should be calculated from the data, here they were just copy-pasted from an example
@@ -251,11 +218,7 @@ def imshow(inp, title=None):
         plt.title(title)
     plt.pause(0.001)  # pause a bit so that plots are updated
 
-
-# Get a batch of training data
 inputs, classes = next(iter(dataloaders['train']))
-
-# Make a grid from batch
 out = torchvision.utils.make_grid(inputs)
 
 imshow(out, title=[class_names[x] for x in classes])
@@ -316,12 +279,9 @@ def train_model_custom(net, criterion, optimizer, dataloaders, num_epochs=25):
     return net
 
 
-#model_conv = train_model(model_conv, criterion, optimizer_conv, exp_lr_scheduler, dataloaders, 25)
-model_conv = train_model_custom(model_conv, criterion, optimizer_conv, dataloaders, 3)
+model_conv = train_model(model_conv, criterion, optimizer_conv, exp_lr_scheduler, dataloaders, 100)
+#model_conv = train_model_custom(model_conv, criterion, optimizer_conv, dataloaders, 3)
 
 visualize_model(model_conv)
-validate_model(model_conv, criterion, optimizer_conv, dataloaders)
-# train Loss: 0.7929 Acc: 0.7781
-
 
 print('done')
