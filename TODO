@@ -1,2 +1,0 @@
-Normalize images channels to 0-1 in cards/
-fix transforms.Normalize mean/std for each channel to actual values from train/val data
