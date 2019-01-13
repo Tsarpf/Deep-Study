@@ -301,8 +301,11 @@ card_size = (75, 90)
 #card_size = (150, 150)
 batch_size = 32 
 epochs = 10
+
+# using custom card image loaders
 #x_train, y_train = load_training(card_size)
 #x_validate, y_validate = load_validation(card_size)
+
 train_gen = load_training(card_size, batch_size)
 val_gen = load_validation(card_size, batch_size)
 
