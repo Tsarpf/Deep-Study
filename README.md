@@ -36,13 +36,14 @@ Only using HSV thresholding to segment the images leaves spots in the ores, and 
 
 ![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/step_1_segment_by_color.png)
 
-Using morphological erosion with a 2 by 2 kernel gets rid of the individual pixels:
+Using morphological closing after this, the spots in the ores disappear:
+
+![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/step_2_morph_closing.png)
+
+Using morphological erosion with a 2 by 2 kernel gets rid of most of the individual pixels:
 
 ![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/step_3_erosion.png)
 
-Using morphological closing after this, the spots in the ores are removed:
-
-![](https://github.com/Tsarpf/Deep-Study/raw/master/ore-classifier/results/step_2_morph_closing.png)
 
 After some experiments and trial & error with coal ore, finally adding one additional round of of erosion makes the segmenter work well  for both iron and coal ores, with the latter having more 1-2 pixel group noise, since there are a lot of black pixels like the ones found in coal ores in other objects in RuneScape.
 
