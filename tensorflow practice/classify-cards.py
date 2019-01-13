@@ -1,7 +1,6 @@
 import cv2
 import tensorflow as tf
 import numpy as np
-#mnist = tf.keras.datasets.mnist
 import matplotlib.pyplot as plt
 import glob
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -13,7 +12,8 @@ def load_card_files(card_path):
     x = []
     y = []
     for path in files:
-        # take last section after \, cut out .png at the end
+        # works only on windows for now
+        # take last section in path after \, cut out .png at the end
         card_label = path.split('\\')[1].split()[0][:-4] 
         val = card_label[0]
         suit = card_label[1]
@@ -37,12 +37,12 @@ def preview():
             zoom_range=0.2,
             fill_mode='nearest')
 
+    # hard code some random image from preprocessed cards
     img = load_img('./cards/torch/val/8h/9a31d523-0f59-4e8b-8c97-d872247ecd6b.png')  # this is a PIL image
     x = img_to_array(img)  # this is a Numpy array with shape (3, 150, 150)
     x = x.reshape((1,) + x.shape)  # this is a Numpy array with shape (1, 3, 150, 150)
 
-    # the .flow() command below generates batches of randomly transformed images
-    # and saves the results to the `preview/` directory
+    # Ugly looping because we want to consume the units
     i = 0
     for batch in datagen.flow(x, batch_size=1,
                             save_to_dir='preview', save_prefix='cat', save_format='jpeg'):
@@ -194,25 +194,30 @@ def plot_history(acc, val_acc, loss, val_loss):
 
 def conv_cards(train_gen, val_gen, card_size, batch_size, epochs):
     model = tf.keras.models.Sequential([
+
         tf.keras.layers.Conv2D(32, (3, 3), padding="same", input_shape=card_size, activation=tf.nn.relu),
-        tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
-        #tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Conv2D(64, (3, 3), padding="same", activation=tf.nn.relu),
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
-        tf.keras.layers.Conv2D(32, (3, 3), padding="same", activation=tf.nn.relu),
-        tf.keras.layers.Dropout(0.1),
-        tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
+        tf.keras.layers.Conv2D(128, (3, 3), padding="same", activation=tf.nn.relu),
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
-        tf.keras.layers.Conv2D(32, (5, 5), padding="same", activation=tf.nn.relu),
-        tf.keras.layers.Dropout(0.1),
-        tf.keras.layers.MaxPooling2D(pool_size=(3, 3)),
+        tf.keras.layers.Conv2D(256, (5, 5), padding="same", activation=tf.nn.relu),
+        tf.keras.layers.Dropout(0.10),
+        tf.keras.layers.Conv2D(64, (20, 20), padding="same", activation=tf.nn.relu),
+        tf.keras.layers.Dropout(0.10),
+
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+
+        tf.keras.layers.Dropout(0.15),
+
 
         tf.keras.layers.Flatten(),
-        #tf.keras.layers.Flatten(input_shape=card_size),
-        tf.keras.layers.Dense(52 * 30, activation=tf.nn.relu), 
-        tf.keras.layers.Dropout(0.1),
+        tf.keras.layers.Dense(52 * 50, activation=tf.nn.relu), 
+        tf.keras.layers.Dropout(0.3),
 
-        #tf.keras.layers.Dense(52, activation=tf.nn.softmax)
         tf.keras.layers.Dense(train_gen.num_classes, activation=tf.nn.softmax)
     ])
     #optimizer = tf.keras.optimizers.SGD(lr=0.01, nesterov=True)
@@ -224,7 +229,6 @@ def conv_cards(train_gen, val_gen, card_size, batch_size, epochs):
                 #loss='categorical_crossentropy',
                 metrics=['accuracy'])
 
-    #model.fit(x_train, y_train, epochs=150)
     steps_per_epoch = train_gen.n // batch_size
     validation_steps = val_gen.n // batch_size
     if validation_steps < 1:
@@ -252,14 +256,12 @@ def load_training(card_size, batch_size):
             #zoom_range=0.2,
             #fill_mode='nearest'
         )
-    #train_datagen = ImageDataGenerator()
     gen = train_datagen.flow_from_directory(
         './cards/torch/train', # mebbe rename since using from tf as well kjeh
         target_size=card_size,
         batch_size=batch_size,
         #save_to_dir='preview',
         class_mode="sparse",
-        #color_mode="rgb",
         shuffle=True,
         #shuffle=False,
         seed=seed
@@ -272,36 +274,33 @@ def load_training(card_size, batch_size):
             plt.imshow(img)
             plt.show()
             print("ses")
-            #print(batch)
     return gen
-    #return load_card_files('./cards/winner-poker/training/*.png')
 
 
 def load_validation(card_size, batch_size):
     load_datagen = ImageDataGenerator(
         rescale=1./255
     )
-    #load_datagen = ImageDataGenerator()
     return load_datagen.flow_from_directory(
-        './cards/torch/val', # mebbe rename since using from tf as well kjeh
+        './cards/torch/val', # mebbe rename 'torch' since using from tf as well
         target_size=card_size,
         batch_size=batch_size,
         class_mode="sparse",
-        #color_mode="rgb",
         shuffle=False,
         seed=seed
     )
-    #return load_card_files('./cards/winner-poker/validation/*.png')
 
+# draw example
 #preview()
 
 print(tf.keras.backend.image_data_format())
 
 
-card_size = (64, 75)
+card_size = (75, 90)
+#card_size = (64, 75)
 #card_size = (150, 150)
-batch_size = 64 
-epochs = 30
+batch_size = 32 
+epochs = 10
 #x_train, y_train = load_training(card_size)
 #x_validate, y_validate = load_validation(card_size)
 train_gen = load_training(card_size, batch_size)

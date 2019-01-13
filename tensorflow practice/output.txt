@@ -1,0 +1,75 @@
+Epoch 1/10
+401/401 [==============================] - 24s 59ms/step - loss: 2.7108 - acc: 0.1061 - val_loss: 2.4337 - val_acc: 0.1755
+Epoch 2/10
+401/401 [==============================] - 22s 54ms/step - loss: 1.8466 - acc: 0.3503 - val_loss: 0.3354 - val_acc: 0.9207
+Epoch 3/10
+401/401 [==============================] - 22s 54ms/step - loss: 0.2304 - acc: 0.9229 - val_loss: 0.0200 - val_acc: 0.9952
+Epoch 4/10
+401/401 [==============================] - 22s 54ms/step - loss: 0.0743 - acc: 0.9772 - val_loss: 0.0055 - val_acc: 0.9976
+Epoch 5/10
+401/401 [==============================] - 22s 54ms/step - loss: 0.0565 - acc: 0.9814 - val_loss: 0.0078 - val_acc: 0.9976
+Epoch 6/10
+401/401 [==============================] - 22s 55ms/step - loss: 0.0415 - acc: 0.9858 - val_loss: 0.0048 - val_acc: 0.9976
+Epoch 7/10
+401/401 [==============================] - 22s 54ms/step - loss: 0.0290 - acc: 0.9898 - val_loss: 0.0044 - val_acc: 0.9976
+Epoch 8/10
+401/401 [==============================] - 22s 54ms/step - loss: 0.0818 - acc: 0.9759 - val_loss: 0.0122 - val_acc: 0.9976
+Epoch 9/10
+401/401 [==============================] - 22s 54ms/step - loss: 0.0238 - acc: 0.9920 - val_loss: 0.0049 - val_acc: 0.9976
+Epoch 10/10
+401/401 [==============================] - 22s 55ms/step - loss: 0.0112 - acc: 0.9953 - val_loss: 0.0067 - val_acc: 0.9976
+Ad correctly identified
+2d correctly identified
+3d correctly identified
+4d correctly identified
+5d correctly identified
+6d correctly identified
+7d correctly identified
+8d correctly identified
+9d correctly identified
+Td correctly identified
+Jd correctly identified
+Qd correctly identified
+Kd correctly identified
+Ah correctly identified
+2h correctly identified
+3h correctly identified
+4h correctly identified
+5h correctly identified
+6h correctly identified
+7h correctly identified
+8h correctly identified
+9h correctly identified
+Th correctly identified
+Jh correctly identified
+Qh correctly identified
+Kh correctly identified
+Ac correctly identified
+2c correctly identified
+3c correctly identified
+4c correctly identified
+5c correctly identified
+6c confused with 3c
+6c correctly identified
+7c correctly identified
+8c correctly identified
+9c correctly identified
+Tc correctly identified
+Jc correctly identified
+Qc correctly identified
+Kc correctly identified
+As correctly identified
+2s correctly identified
+3s correctly identified
+4s correctly identified
+5s correctly identified
+6s correctly identified
+7s correctly identified
+8s correctly identified
+9s correctly identified
+Ts correctly identified
+Js correctly identified
+Qs correctly identified
+Ks correctly identified
+suit fails 0 val fails 1 both fails 0
+validation accuracy 0.9976190476190476
