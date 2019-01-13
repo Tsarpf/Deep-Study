@@ -87,6 +87,7 @@ def import_loader():
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
+            # FIX these to actual mean/std/etc values from data
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
     }
@@ -129,8 +130,6 @@ model_conv = model_conv.to(device)
 
 criterion = nn.CrossEntropyLoss()
 
-# Observe that only parameters of final layer are being optimized as
-# opposed to before.
 optimizer_conv = optim.SGD(model_conv.fc.parameters(), lr=0.001, momentum=0.9)
 
 # Decay LR by a factor of 0.1 every 7 epochs
@@ -241,6 +240,7 @@ def validate_model(model, criterion, optimizer, dataloaders):
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
+    # These should be calculated from the data, here they were just copy-pasted from an example
     inp = inp.numpy().transpose((1, 2, 0))
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
@@ -317,10 +317,11 @@ def train_model_custom(net, criterion, optimizer, dataloaders, num_epochs=25):
 
 
 #model_conv = train_model(model_conv, criterion, optimizer_conv, exp_lr_scheduler, dataloaders, 25)
-model_conv = train_model_custom(model_conv, criterion, optimizer_conv, dataloaders, 25)
+model_conv = train_model_custom(model_conv, criterion, optimizer_conv, dataloaders, 3)
 
 visualize_model(model_conv)
 validate_model(model_conv, criterion, optimizer_conv, dataloaders)
+# train Loss: 0.7929 Acc: 0.7781
 
 
 print('done')
