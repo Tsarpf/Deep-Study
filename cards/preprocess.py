@@ -11,10 +11,12 @@ print(cwd)
 
 # (x|y)min / (x|y)max give card positions in the default size table
 paths_to_images = [
-    {'path': './cards/winner-poker', 'ymin': 480, 'ymax': 555,
-         'xmin': 490, 'xmax': 620, 'card_size': 64},
-    {'path': './cards/partypoker',   'ymin': 515, 'ymax': 580,
-         'xmin': 565, 'xmax': 740, 'card_size': 87},
+    #{'path': './cards/winner-poker', 'ymin': 480, 'ymax': 555,
+    #     'xmin': 490, 'xmax': 620, 'card_size': 64},
+    #{'path': './cards/partypoker',   'ymin': 515, 'ymax': 580,
+    #     'xmin': 565, 'xmax': 740, 'card_size': 87},
+    {'path': './cards/888poker',   'ymin': 500, 'ymax': 580,
+         'xmin': 520, 'xmax': 645, 'card_size': 65},
 ]
 
 path_to_torch_images = './cards/torch/'
@@ -92,8 +94,9 @@ def compare(one, two):
     plt.show()
 
 def get_cards(path, site):
-    card1_label = path.split('\\')[1].split()[0]
-    card2_label = path.split('\\')[1].split()[1][0:-4]
+    cards = path.split('\\')[1].split()[0][0:-4]
+    card1_label = cards[0:2]
+    card2_label = cards[2:4]
 
     print(card1_label, card2_label)
 
@@ -109,7 +112,6 @@ def get_cards(path, site):
     img = img[ymin:ymax, xmin:xmax]
     card1 = img[:, :card_size]
     card2 = img[:, card_size:]
-
     #plt.imshow(img)
     #plt.show()
 

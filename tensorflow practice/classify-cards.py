@@ -296,7 +296,8 @@ def load_validation(card_size, batch_size):
 print(tf.keras.backend.image_data_format())
 
 
-card_size = (75, 90)
+#card_size = (75, 90)
+card_size = (65, 80) # 888poker
 #card_size = (64, 75)
 #card_size = (150, 150)
 batch_size = 32 
