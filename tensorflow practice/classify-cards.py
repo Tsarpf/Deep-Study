@@ -228,7 +228,9 @@ def conv_cards(train_gen, val_gen, card_size, batch_size, epochs):
                 loss='sparse_categorical_crossentropy',
                 #loss='categorical_crossentropy',
                 metrics=['accuracy'])
+    return model
 
+def train_model(model, train_gen, val_gen, epochs):
     steps_per_epoch = train_gen.n // batch_size
     validation_steps = val_gen.n // batch_size
     if validation_steps < 1:
@@ -314,6 +316,12 @@ sess = tf.InteractiveSession()
 
 in_shape = (card_size[0], card_size[1], 3)
 cnn_model = conv_cards(train_gen, val_gen, in_shape, batch_size, epochs)
+cnn_model = train_model(cnn_model, train_gen, val_gen, epochs)
+
+save = True
+if save:
+    cnn_model.save('888_model.h5')
+
 print_model_stats(cnn_model, val_gen)
 
 train_acc = cnn_model.history.history['acc']
